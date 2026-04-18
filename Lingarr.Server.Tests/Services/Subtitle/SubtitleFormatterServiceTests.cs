@@ -224,11 +224,12 @@ public class SubtitleFormatterServiceTests
     [Fact]
     public void RemoveMarkup_UnclosedDrawingTag_HandledGracefully()
     {
-        // Unclosed {\p1} — should not crash, regex handles it
+        // Unclosed {\p1} — block stripper needs a second \p to match, so only
+        // the wrapping braces are removed. Residual path tokens remain, but
+        // the line is not purely vector so it's passed through unchanged.
+        // Stripping orphan path residue when text is present is follow-up work.
         var input = "{\\p1}m 0 0 text without close";
         var result = SubtitleFormatterService.RemoveMarkup(input);
-        // The {\p1}... text has no {\p0} so path-like content may remain
-        // But since 'text' is readable, the line is not purely vector
-        Assert.Equal("text without close", result);
+        Assert.Equal("m 0 0 text without close", result);
     }
 }

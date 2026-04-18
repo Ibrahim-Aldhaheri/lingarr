@@ -5,9 +5,18 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SubtitleFormatterService : ISubtitleFormatterService
 {
+    // Matches pure SVG vector paths with no readable text — supports
+    // multi-command chains where command letters are interspersed with
+    // coordinates, e.g. "m 0 0 l 100 100 b 50 50 200 200".
     private static readonly Regex BareVectorPattern = new(
-        @"^[mlcbspMLCBSP](?:\s+[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)+$",
+        @"^[mlcbsnMLCBSN](?:\s+(?:[mlcbsnMLCBSN]|[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?))+$",
         RegexOptions.Compiled);
+
+    // Matches ASS drawing-mode blocks {\pN}...{\pM}. Stripped before the
+    // generic tag remover so the inner vector commands do not leak through.
+    private static readonly Regex DrawingTagPattern = new(
+        @"\\[pP][0-9].*?\\[pP][0-9]",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
     /// <inheritdoc />
     public static string RemoveMarkup(string input)
@@ -16,10 +25,8 @@ public class SubtitleFormatterService : ISubtitleFormatterService
             return string.Empty;
         }
 
-        // Strip ASS drawing-mode tags {\pN}...{\p0} before other processing.
-        // These wrap SVG vector commands; without stripping, bare paths remain after tag removal.
-        string stripped = Regex.Replace(input, @"\\p[0-9].*?\\p0", string.Empty,
-            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        // Strip ASS drawing-mode blocks {\pN}...{\p0} before generic tag removal
+        string stripped = DrawingTagPattern.Replace(input, string.Empty);
 
         // Remove SSA/ASS style tags: {\...}
         stripped = Regex.Replace(stripped, @"\{.*?\}", string.Empty);

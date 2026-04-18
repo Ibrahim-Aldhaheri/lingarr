@@ -79,7 +79,9 @@ public class SsaWriter : ISubtitleWriter
             var dialogue = item.SsaDialogue ?? new SsaDialogue();
             
             // Use original lines (with markup) or translated lines if available
-            var linesToUse = item.TranslatedLines.Any() ? item.TranslatedLines : item.Lines;
+            var linesToUse = item.TranslatedLines.Any(l => !string.IsNullOrEmpty(l))
+                ? item.TranslatedLines
+                : item.Lines;
                 
             // Join lines according to wrap style
             var text = JoinLinesByWrapStyle(linesToUse, item.SsaFormat?.WrapStyle ?? SsaWrapStyle.None);
