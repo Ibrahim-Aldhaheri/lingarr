@@ -78,7 +78,7 @@ public class SubtitleTranslationService
                     },
                     cancellationToken);
             }
-            subtitle.TranslatedLines = [translated];
+            subtitle.TranslatedLines = [SanitizeTranslated(translated)];
 
             await _progressService!.EmitLine(translationRequest, subtitle.Position, subtitleLine, translated);
 
@@ -231,7 +231,7 @@ public class SubtitleTranslationService
                     translated = SubtitleFormatterService.RemoveMarkup(translated);
                 }
 
-                subtitle.TranslatedLines = [translated];
+                subtitle.TranslatedLines = [SanitizeTranslated(translated)];
             }
             else
             {
@@ -243,6 +243,21 @@ public class SubtitleTranslationService
         }
     }
     
+    /// <summary>
+    /// Collapses any newlines/carriage-returns in an LLM translation to single spaces
+    /// and trims surrounding whitespace. Real line breaks in an ASS/SSA text field must
+    /// use the <c>\N</c> escape, so raw newlines from the model would otherwise produce
+    /// blank physical lines inside the output file.
+    /// </summary>
+    /// <param name="translated">Translated string returned by the model.</param>
+    /// <returns>Single-line translation safe to write to the subtitle file.</returns>
+    private static string SanitizeTranslated(string translated)
+    {
+        if (string.IsNullOrEmpty(translated)) return translated ?? string.Empty;
+        var collapsed = translated.Replace("\r\n", " ").Replace('\n', ' ').Replace('\r', ' ');
+        return System.Text.RegularExpressions.Regex.Replace(collapsed, @"\s{2,}", " ").Trim();
+    }
+
     /// <summary>
     /// Builds a list of subtitle text strings as context around a given subtitle index.
     /// </summary>
