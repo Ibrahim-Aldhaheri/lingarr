@@ -143,24 +143,16 @@ public class SsaParser : ISubtitleParser
 
     private SubtitleItem? ParseDialogueLine(string line, Dictionary<string, int> columnIndexes, SsaFormat ssaFormat)
     {
-        // Find the first 9 commas (corresponding to the format fields before Text)
-        var textFieldStart = -1;
-        var commaCount = 0;
-        for (var index = DIALOGUE_PREFIX.Length; index < line.Length; index++)
+        // Find the comma that separates the Text field. The format declares the
+        // Text column index (typically 9 when Layer is the first field). Some
+        // older Aegisub outputs omit the Layer field entirely, so also accept
+        // one column less as a fallback.
+        var textFieldStart = FindTextFieldStart(line, columnIndexes["Text"]);
+        var layerOmitted = false;
+        if (textFieldStart == -1 && columnIndexes["Text"] > 0)
         {
-            if (line[index] != ',')
-            {
-                continue;
-            }
-
-            commaCount++;
-            if (commaCount != columnIndexes["Text"])
-            {
-                continue;
-            }
-
-            textFieldStart = index + 1;
-            break;
+            textFieldStart = FindTextFieldStart(line, columnIndexes["Text"] - 1);
+            layerOmitted = textFieldStart != -1;
         }
 
         if (textFieldStart == -1 || textFieldStart >= line.Length)
@@ -171,6 +163,11 @@ public class SsaParser : ISubtitleParser
         // Extract the parts before the Text field
         var dialoguePrefix = line.Substring(DIALOGUE_PREFIX.Length, textFieldStart - DIALOGUE_PREFIX.Length - 1);
         var dialogueParts = dialoguePrefix.Split(',');
+        if (layerOmitted)
+        {
+            // Prepend a default Layer value so downstream column indexes line up
+            dialogueParts = new[] { "0" }.Concat(dialogueParts).ToArray();
+        }
 
         if (dialogueParts.Length < columnIndexes["Text"])
         {
@@ -225,6 +222,18 @@ public class SsaParser : ISubtitleParser
             SsaDialogue = ssaDialogue,
             SsaFormat = ssaFormat
         };
+    }
+
+    private static int FindTextFieldStart(string line, int textColumnIndex)
+    {
+        var commaCount = 0;
+        for (var index = DIALOGUE_PREFIX.Length; index < line.Length; index++)
+        {
+            if (line[index] != ',') continue;
+            commaCount++;
+            if (commaCount == textColumnIndex) return index + 1;
+        }
+        return -1;
     }
 
     private static int ParseSsaTimecode(string timestamp)
