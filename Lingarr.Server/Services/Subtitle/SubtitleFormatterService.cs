@@ -5,11 +5,12 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SubtitleFormatterService : ISubtitleFormatterService
 {
-    // Matches pure SVG vector paths with no readable text — supports
-    // multi-command chains where command letters are interspersed with
-    // coordinates, e.g. "m 0 0 l 100 100 b 50 50 200 200".
-    private static readonly Regex BareVectorPattern = new(
-        @"^[mlcbsnMLCBSN](?:\s+(?:[mlcbsnMLCBSN]|[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?))+$",
+    // Matches text that BEGINS with a vector drawing prefix — a command letter
+    // followed by at least two coord/command tokens. Catches both pure vector
+    // paths ("m 0 0 l 100 100") and karaoke lines where drawing data leaks
+    // alongside a trailing syllable ("m 0 0 ka", "m 0 0 l 10 10 Take").
+    private static readonly Regex VectorPrefixPattern = new(
+        @"^[mlcbsnMLCBSN](?:\s+(?:[mlcbsnMLCBSN]|[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)){2,}(?=\s|$)",
         RegexOptions.Compiled);
 
     // Matches ASS drawing-mode blocks {\pN}...{\pM}. Stripped before the
@@ -45,8 +46,9 @@ public class SubtitleFormatterService : ISubtitleFormatterService
 
         var result = stripped.Trim();
 
-        // Skip pure SVG vector paths (bare vector commands with no readable text)
-        if (BareVectorPattern.IsMatch(result)) {
+        // Skip lines that begin with a vector drawing prefix — these are
+        // pure vector paths or karaoke where drawing data leaked into text.
+        if (VectorPrefixPattern.IsMatch(result)) {
             return string.Empty;
         }
 

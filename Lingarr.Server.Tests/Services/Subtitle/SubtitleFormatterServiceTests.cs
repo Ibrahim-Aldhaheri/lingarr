@@ -222,14 +222,15 @@ public class SubtitleFormatterServiceTests
     }
 
     [Fact]
-    public void RemoveMarkup_UnclosedDrawingTag_HandledGracefully()
+    public void RemoveMarkup_UnclosedDrawingTag_StripsVectorPrefix()
     {
-        // Unclosed {\p1} — block stripper needs a second \p to match, so only
-        // the wrapping braces are removed. Residual path tokens remain, but
-        // the line is not purely vector so it's passed through unchanged.
-        // Stripping orphan path residue when text is present is follow-up work.
+        // Unclosed {\p1}: the drawing-block stripper needs a paired \p and
+        // skips this, but once braces are removed the residue starts with a
+        // vector prefix ("m 0 0 …"), so the line is treated as karaoke/vector
+        // and skipped — trailing syllables/short words after the prefix are
+        // treated as karaoke annotations, not readable dialogue.
         var input = "{\\p1}m 0 0 text without close";
         var result = SubtitleFormatterService.RemoveMarkup(input);
-        Assert.Equal("m 0 0 text without close", result);
+        Assert.Equal(string.Empty, result);
     }
 }

@@ -11,9 +11,12 @@ public class SsaParser : ISubtitleParser
     // (vector paths mixed with per-syllable text like "ka", "hi", "shi").
     // These are visual effects, not translatable dialogue — mark PlaintextLines
     // empty so the translation guard skips them, while original Lines are
-    // preserved for the writer.
-    private static readonly HashSet<string> KaraokeSkipStyles =
-        new(StringComparer.OrdinalIgnoreCase) { "OPR", "EDR" };
+    // preserved for the writer. The pattern covers common fansub conventions:
+    // OPR/EDR, OP-R/ED-R (with optional digit suffix), OP_ROM*, OP-rom*,
+    // "OP - Romaji", "OP Romanji", etc.
+    private static readonly Regex KaraokeStylePattern = new(
+        @"^(OP|ED)\d?[\s_-]*(R\d*|rom\w*|romaji\w*|romanji\w*)$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string SCRIPT_INFO_SECTION = "[Script Info]";
     private const string V4_PLUS_STYLES_SECTION = "[V4+ Styles]";
@@ -208,7 +211,7 @@ public class SsaParser : ISubtitleParser
             ssaDialogue.Name = dialogueParts[columnIndexes["Name"]].Trim();
         }
 
-        if (KaraokeSkipStyles.Contains(ssaDialogue.Style))
+        if (KaraokeStylePattern.IsMatch(ssaDialogue.Style))
         {
             plaintextLines = plaintextLines.Select(_ => string.Empty).ToList();
         }
