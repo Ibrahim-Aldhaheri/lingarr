@@ -7,6 +7,14 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SsaParser : ISubtitleParser
 {
+    // Style names whose dialogue lines are karaoke romaji syllable overlays
+    // (vector paths mixed with per-syllable text like "ka", "hi", "shi").
+    // These are visual effects, not translatable dialogue — mark PlaintextLines
+    // empty so the translation guard skips them, while original Lines are
+    // preserved for the writer.
+    private static readonly HashSet<string> KaraokeSkipStyles =
+        new(StringComparer.OrdinalIgnoreCase) { "OPR", "EDR" };
+
     private const string SCRIPT_INFO_SECTION = "[Script Info]";
     private const string V4_PLUS_STYLES_SECTION = "[V4+ Styles]";
     private const string V4_STYLES_SECTION = "[V4 Styles]";
@@ -201,6 +209,11 @@ public class SsaParser : ISubtitleParser
 
         if (columnIndexes.ContainsKey("Name")) {
             ssaDialogue.Name = dialogueParts[columnIndexes["Name"]].Trim();
+        }
+
+        if (KaraokeSkipStyles.Contains(ssaDialogue.Style))
+        {
+            plaintextLines = plaintextLines.Select(_ => string.Empty).ToList();
         }
 
         return new SubtitleItem
