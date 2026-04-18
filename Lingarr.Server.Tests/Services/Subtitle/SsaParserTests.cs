@@ -278,9 +278,10 @@ Dialogue: 0,0:01:30.50,0:01:45.75,Default,,0,0,0,,Timing test
     [Fact]
     public void ParseStream_WrapStyleNone_RecognizesBackslashN()
     {
+        // WrapStyle 2 = None in SsaWrapStyle; only this style splits lowercase \n
         var ass = @"[Script Info]
 Title: Test
-WrapStyle: 0
+WrapStyle: 2
 
 [V4+ Styles]
 Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0
