@@ -20,7 +20,7 @@ public class SubtitleFormatterService : ISubtitleFormatterService
         RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
     /// <inheritdoc />
-    public static string RemoveMarkup(string input)
+    public static string RemoveMarkup(string input, bool skipKaraokeDetection = false)
     {
         if (string.IsNullOrWhiteSpace(input)) {
             return string.Empty;
@@ -48,7 +48,9 @@ public class SubtitleFormatterService : ISubtitleFormatterService
 
         // Skip lines that begin with a vector drawing prefix — these are
         // pure vector paths or karaoke where drawing data leaked into text.
-        if (VectorPrefixPattern.IsMatch(result)) {
+        // When the caller opts out (skipKaraokeDetection=true), leave the
+        // text alone so the user can get raw behaviour.
+        if (!skipKaraokeDetection && VectorPrefixPattern.IsMatch(result)) {
             return string.Empty;
         }
 

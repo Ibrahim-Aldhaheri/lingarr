@@ -76,6 +76,7 @@ public class TranslationJob
                 SettingKeys.Translation.ServiceType,
                 SettingKeys.Translation.FixOverlappingSubtitles,
                 SettingKeys.Translation.StripSubtitleFormatting,
+                SettingKeys.Translation.SkipKaraokeDetection,
                 SettingKeys.Translation.AddTranslatorInfo,
 
                 SettingKeys.SubtitleValidation.ValidateSubtitles,
@@ -96,6 +97,7 @@ public class TranslationJob
             ]);
             var serviceType = settings[SettingKeys.Translation.ServiceType];
             var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
+            var skipKaraokeDetection = settings[SettingKeys.Translation.SkipKaraokeDetection] == "true";
             var addTranslatorInfo = settings[SettingKeys.Translation.AddTranslatorInfo] == "true";
             var validateSubtitles = settings[SettingKeys.SubtitleValidation.ValidateSubtitles] != "false";
             var removeLanguageTag = settings[SettingKeys.Translation.RemoveLanguageTag] != "false";
@@ -164,7 +166,7 @@ public class TranslationJob
             // translate subtitles
             var translationService = _translationServiceFactory.CreateTranslationService(serviceType);
             var translator = new SubtitleTranslationService(translationService, _logger, _progressService);
-            var subtitles = await _subtitleService.ReadSubtitles(request.SubtitleToTranslate);
+            var subtitles = await _subtitleService.ReadSubtitles(request.SubtitleToTranslate, skipKaraokeDetection);
             List<SubtitleItem> translatedSubtitles;
             if (settings[SettingKeys.Translation.UseBatchTranslation] == "true"
                 && translationService is IBatchTranslationService _)

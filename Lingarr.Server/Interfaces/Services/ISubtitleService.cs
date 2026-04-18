@@ -25,7 +25,7 @@ public interface ISubtitleService
     /// </summary>
     /// <param name="filePath">The path to the subtitle file to be read.</param>
     /// <returns>A list of SubtitleItem objects representing the parsed subtitles.</returns>
-    Task<List<SubtitleItem>> ReadSubtitles(string filePath);
+    Task<List<SubtitleItem>> ReadSubtitles(string filePath, bool skipKaraokeDetection = false);
 
     /// <summary>
     /// Writes a list of subtitle items to a file.

@@ -43,6 +43,24 @@
                 </ToggleButton>
 
                 <div class="flex flex-col space-x-2">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold">Skip karaoke/vector detection:</span>
+                        <BadgeComponent
+                            classes="text-primary-content border-accent bg-secondary text-xs">
+                            BETA
+                        </BadgeComponent>
+                    </div>
+                    Bypass the ASS/SSA karaoke filter — translate every dialogue line, including
+                    drawing-mode vector overlays and romaji karaoke syllables. Leave disabled unless
+                    the filter is mis-skipping lines you want translated.
+                </div>
+                <ToggleButton v-model="skipKaraokeDetection">
+                    <span class="text-sm font-medium text-primary-content">
+                        {{ skipKaraokeDetection == 'true' ? 'Enabled' : 'Disabled' }}
+                    </span>
+                </ToggleButton>
+
+                <div class="flex flex-col space-x-2">
                     <span class="font-semibold">Add translator info</span>
                     Add translator info at the beginning of subtitles.
                 </div>
@@ -94,6 +112,7 @@ import CardComponent from '@/components/common/CardComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
 import ToggleButton from '@/components/common/ToggleButton.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
+import BadgeComponent from '@/components/common/BadgeComponent.vue'
 
 const saveNotification = ref<InstanceType<typeof SaveNotification> | null>(null)
 const settingsStore = useSettingStore()
@@ -121,6 +140,14 @@ const stripSubtitleFormatting = computed({
     get: (): string => settingsStore.getSetting(SETTINGS.STRIP_SUBTITLE_FORMATTING) as string,
     set: (newValue: string): void => {
         settingsStore.updateSetting(SETTINGS.STRIP_SUBTITLE_FORMATTING, newValue, true)
+        saveNotification.value?.show()
+    }
+})
+
+const skipKaraokeDetection = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.SKIP_KARAOKE_DETECTION) as string,
+    set: (newValue: string): void => {
+        settingsStore.updateSetting(SETTINGS.SKIP_KARAOKE_DETECTION, newValue, true)
         saveNotification.value?.show()
     }
 })

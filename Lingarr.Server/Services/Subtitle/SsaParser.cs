@@ -18,6 +18,13 @@ public class SsaParser : ISubtitleParser
         @"^(OP|ED)\d?[\s_-]*(R\d*|rom\w*|romaji\w*|romanji\w*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    private readonly bool _skipKaraokeDetection;
+
+    public SsaParser(bool skipKaraokeDetection = false)
+    {
+        _skipKaraokeDetection = skipKaraokeDetection;
+    }
+
     private const string SCRIPT_INFO_SECTION = "[Script Info]";
     private const string V4_PLUS_STYLES_SECTION = "[V4+ Styles]";
     private const string V4_STYLES_SECTION = "[V4 Styles]";
@@ -193,7 +200,9 @@ public class SsaParser : ISubtitleParser
         }
 
         var textLines = SplitTextByWrapStyle(text, ssaFormat.WrapStyle);
-        var plaintextLines = textLines.Select(SubtitleFormatterService.RemoveMarkup).ToList();
+        var plaintextLines = textLines
+            .Select(line => SubtitleFormatterService.RemoveMarkup(line, _skipKaraokeDetection))
+            .ToList();
 
         // Create SsaDialogue info
         var ssaDialogue = new SsaDialogue
@@ -211,7 +220,7 @@ public class SsaParser : ISubtitleParser
             ssaDialogue.Name = dialogueParts[columnIndexes["Name"]].Trim();
         }
 
-        if (KaraokeStylePattern.IsMatch(ssaDialogue.Style))
+        if (!_skipKaraokeDetection && KaraokeStylePattern.IsMatch(ssaDialogue.Style))
         {
             plaintextLines = plaintextLines.Select(_ => string.Empty).ToList();
         }
