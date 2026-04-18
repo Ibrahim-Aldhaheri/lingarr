@@ -526,8 +526,7 @@ public class SubtitleService : ISubtitleService
             Lines = [introText],
             PlaintextLines = [introText],
             TranslatedLines = [introText],
-            // Carry the source SsaFormat forward so SsaWriter (which reads
-            // items[0].SsaFormat) still emits [Script Info] and [V4+ Styles].
+            // SsaWriter reads items[0].SsaFormat for the header — carry it over.
             SsaFormat = translatedSubtitles.FirstOrDefault()?.SsaFormat
         };
 

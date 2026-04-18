@@ -7,13 +7,8 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SsaParser : ISubtitleParser
 {
-    // Style names whose dialogue lines are karaoke romaji syllable overlays
-    // (vector paths mixed with per-syllable text like "ka", "hi", "shi").
-    // These are visual effects, not translatable dialogue — mark PlaintextLines
-    // empty so the translation guard skips them, while original Lines are
-    // preserved for the writer. The pattern covers common fansub conventions:
-    // OPR/EDR, OP-R/ED-R (with optional digit suffix), OP_ROM*, OP-rom*,
-    // "OP - Romaji", "OP Romanji", etc.
+    // Karaoke romaji style names (OPR/EDR, OP-R, OP_ROM, "OP Romaji", etc.) —
+    // dialogue under these styles is visual karaoke, not translatable text.
     private static readonly Regex KaraokeStylePattern = new(
         @"^(OP|ED)\d?[\s_-]*(R\d*|rom\w*|romaji\w*|romanji\w*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -153,10 +148,7 @@ public class SsaParser : ISubtitleParser
 
     private SubtitleItem? ParseDialogueLine(string line, Dictionary<string, int> columnIndexes, SsaFormat ssaFormat)
     {
-        // Find the comma that separates the Text field. The format declares the
-        // Text column index (typically 9 when Layer is the first field). Some
-        // older Aegisub outputs omit the Layer field entirely, so also accept
-        // one column less as a fallback.
+        // Older Aegisub outputs omit the Layer field, so try one column less as fallback.
         var textFieldStart = FindTextFieldStart(line, columnIndexes["Text"]);
         var layerOmitted = false;
         if (textFieldStart == -1 && columnIndexes["Text"] > 0)

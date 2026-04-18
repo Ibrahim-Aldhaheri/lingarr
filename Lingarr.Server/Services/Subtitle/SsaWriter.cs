@@ -53,10 +53,9 @@ public class SsaWriter : ISubtitleWriter
 
         if (stripSubtitleFormatting)
         {
-            // Always emit a minimal Default style when stripping — TranslationJob
-            // clears format.Styles before writing, so gating on Styles.Any() would
-            // skip the styles block entirely and leave Dialogue lines referencing
-            // an undefined "Default" style.
+            // TranslationJob clears format.Styles when stripping, so always
+            // emit a minimal Default style — otherwise Dialogue lines reference
+            // an undefined style.
             await writer.WriteLineAsync("[V4+ Styles]");
             await writer.WriteLineAsync("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding");
             await writer.WriteLineAsync("Style: Default,Roboto Medium,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1.3,0,2,20,20,23,1");

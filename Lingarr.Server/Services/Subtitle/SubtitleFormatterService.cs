@@ -5,16 +5,13 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SubtitleFormatterService : ISubtitleFormatterService
 {
-    // Matches text that BEGINS with a vector drawing prefix — a command letter
-    // followed by at least two coord/command tokens. Catches both pure vector
-    // paths ("m 0 0 l 100 100") and karaoke lines where drawing data leaks
-    // alongside a trailing syllable ("m 0 0 ka", "m 0 0 l 10 10 Take").
+    // Text starting with a vector drawing prefix — pure vector paths or
+    // karaoke where a trailing syllable follows the drawing ("m 0 0 ka").
     private static readonly Regex VectorPrefixPattern = new(
         @"^[mlcbsnMLCBSN](?:\s+(?:[mlcbsnMLCBSN]|[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)){2,}(?=\s|$)",
         RegexOptions.Compiled);
 
-    // Matches ASS drawing-mode blocks {\pN}...{\pM}. Stripped before the
-    // generic tag remover so the inner vector commands do not leak through.
+    // ASS drawing-mode blocks {\pN}...{\pM} — stripped before generic tag removal.
     private static readonly Regex DrawingTagPattern = new(
         @"\\[pP][0-9].*?\\[pP][0-9]",
         RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
@@ -46,10 +43,7 @@ public class SubtitleFormatterService : ISubtitleFormatterService
 
         var result = stripped.Trim();
 
-        // Skip lines that begin with a vector drawing prefix — these are
-        // pure vector paths or karaoke where drawing data leaked into text.
-        // When the caller opts out (skipKaraokeDetection=true), leave the
-        // text alone so the user can get raw behaviour.
+        // Drop vector/karaoke lines unless the caller opts out.
         if (!skipKaraokeDetection && VectorPrefixPattern.IsMatch(result)) {
             return string.Empty;
         }
