@@ -57,3 +57,7 @@ local_nas.db
 
 # Ansible
 ansible_env/
+# Dev artifacts (local test runner + scheduled task state)
+/TestVector/
+/test-sample.ass
+/.claude/

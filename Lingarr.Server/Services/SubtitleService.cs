@@ -93,10 +93,14 @@ public class SubtitleService : ISubtitleService
     public async Task<List<SubtitleItem>> ReadSubtitles(string filePath, bool skipKaraokeDetection = false)
     {
         var extension = Path.GetExtension(filePath).ToLower();
+        // When skipKaraokeDetection is on, use the pristine upstream SsaParser so we can
+        // A/B compare against our modified parser without any of our changes active.
         ISubtitleParser parser = extension switch
         {
             ".srt" => new SrtParser(),
-            ".ssa" or ".ass" => new SsaParser(skipKaraokeDetection),
+            ".ssa" or ".ass" => skipKaraokeDetection
+                ? (ISubtitleParser)new SsaParserOriginal()
+                : new SsaParser(skipKaraokeDetection),
             _ => throw new NotSupportedException($"Subtitle format {extension} is not supported")
         };
 
