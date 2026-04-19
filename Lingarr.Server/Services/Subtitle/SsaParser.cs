@@ -7,10 +7,12 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SsaParser : ISubtitleParser
 {
-    // Karaoke romaji style names (OPR/EDR, OP-R, OP_ROM, "OP Romaji", etc.) —
-    // dialogue under these styles is visual karaoke, not translatable text.
+    // Karaoke romaji style names (OPR/EDR, OP-R, OP_ROM, "OP Romaji",
+    // "OP-rom-furigana", etc.) — dialogue under these styles is visual karaoke,
+    // not translatable text. The optional trailing group covers "-furigana",
+    // "-BG" and other fansub-specific suffixes chained after "rom".
     private static readonly Regex KaraokeStylePattern = new(
-        @"^(OP|ED)\d?[\s_-]*(R\d*|rom\w*|romaji\w*|romanji\w*)$",
+        @"^(OP|ED)\d?[\s_-]*(R\d*|rom(?:[\s_-]?\w+)*|romaji\w*|romanji\w*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private readonly bool _skipKaraokeDetection;
