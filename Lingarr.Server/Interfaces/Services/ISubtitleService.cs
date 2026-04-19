@@ -24,6 +24,12 @@ public interface ISubtitleService
     /// Reads and parses a subtitle file.
     /// </summary>
     /// <param name="filePath">The path to the subtitle file to be read.</param>
+    /// <param name="skipKaraokeDetection">
+    /// When <c>true</c>, the SSA/ASS path uses the pristine upstream parser so
+    /// none of the karaoke/vector filters run. Used by the
+    /// <c>skip_karaoke_detection</c> opt-out toggle for A/B comparison.
+    /// Ignored for other formats (SRT). Defaults to <c>false</c>.
+    /// </param>
     /// <returns>A list of SubtitleItem objects representing the parsed subtitles.</returns>
     Task<List<SubtitleItem>> ReadSubtitles(string filePath, bool skipKaraokeDetection = false);
 

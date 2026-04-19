@@ -15,6 +15,15 @@ public class SsaParser : ISubtitleParser
 
     private readonly bool _skipKaraokeDetection;
 
+    /// <summary>
+    /// Creates a new SSA/ASS parser.
+    /// </summary>
+    /// <param name="skipKaraokeDetection">
+    /// When <c>true</c>, bypass the karaoke style filter and the vector-prefix
+    /// plaintext filter so every dialogue line is treated as translatable.
+    /// Plumbed from the <c>skip_karaoke_detection</c> setting; defaults to
+    /// <c>false</c> (filter active) for callers that don't pass it.
+    /// </param>
     public SsaParser(bool skipKaraokeDetection = false)
     {
         _skipKaraokeDetection = skipKaraokeDetection;
