@@ -297,6 +297,74 @@ Dialogue: 0,0:00:01.00,0:00:04.00,Default,,0,0,0,,Line one\nLine two
         Assert.Equal(2, items[0].PlaintextLines.Count);
     }
 
+    // ===== Layer-omitted fallback (older Aegisub output) =====
+
+    [Fact]
+    public void ParseStream_LayerOmittedDialogue_Parses()
+    {
+        // Older Aegisub/FFmpeg outputs write Dialogue lines without the Layer
+        // column. Parser must treat "Text at column N-1" as a fallback so these
+        // files don't error with "No valid subtitles".
+        var ass = @"[Script Info]
+Title: Test
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0:00:01.00,0:00:04.00,Default,,0,0,0,,Hello from legacy Aegisub
+";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
+        var items = _parser.ParseStream(stream, Encoding.UTF8);
+        Assert.Single(items);
+        Assert.Equal("Hello from legacy Aegisub", items[0].PlaintextLines[0]);
+    }
+
+    // ===== Karaoke-style skip toggle =====
+
+    [Fact]
+    public void ParseStream_OprStyleDialogue_DefaultParserMarksPlaintextEmpty()
+    {
+        var ass = @"[Script Info]
+Title: Test
+
+[V4+ Styles]
+Style: OPR,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:04.00,OPR,,0,0,0,,ka
+";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
+        var items = _parser.ParseStream(stream, Encoding.UTF8);
+        Assert.Single(items);
+        Assert.Equal(string.Empty, items[0].PlaintextLines[0]);
+    }
+
+    [Fact]
+    public void ParseStream_OprStyleDialogue_SkipDetectionKeepsPlaintext()
+    {
+        // When the skip_karaoke_detection toggle is on, the karaoke style filter
+        // must be bypassed and the syllable flows through to the translator.
+        var parser = new SsaParser(skipKaraokeDetection: true);
+        var ass = @"[Script Info]
+Title: Test
+
+[V4+ Styles]
+Style: OPR,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:04.00,OPR,,0,0,0,,ka
+";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
+        var items = parser.ParseStream(stream, Encoding.UTF8);
+        Assert.Single(items);
+        Assert.Equal("ka", items[0].PlaintextLines[0]);
+    }
+
     // ===== Helper =====
 
     private class NonSeekableStream : Stream
