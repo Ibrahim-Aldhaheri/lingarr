@@ -29,7 +29,7 @@ export const SETTINGS = {
     SHOW_AGE_THRESHOLD: 'show_age_threshold',
     FIX_OVERLAPPING_SUBTITLES: 'fix_overlapping_subtitles',
     STRIP_SUBTITLE_FORMATTING: 'strip_subtitle_formatting',
-    SKIP_KARAOKE_DETECTION: 'skip_karaoke_detection',
+    KARAOKE_FILTER_ENABLED: 'karaoke_filter_enabled',
     ADD_TRANSLATOR_INFO: 'add_translator_info',
     CUSTOM_AI_PARAMETERS: 'custom_ai_parameters',
     SUBTITLE_VALIDATION_ENABLED: 'subtitle_validation_enabled',
@@ -92,7 +92,7 @@ export interface ISettings {
     show_age_threshold: string
     fix_overlapping_subtitles: string
     strip_subtitle_formatting: string
-    skip_karaoke_detection: string
+    karaoke_filter_enabled: string
     add_translator_info: string
     theme: ITheme
     locale: ILocale

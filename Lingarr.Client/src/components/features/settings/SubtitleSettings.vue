@@ -44,19 +44,19 @@
 
                 <div class="flex flex-col space-x-2">
                     <div class="flex items-center gap-2">
-                        <span class="font-semibold">Skip karaoke/vector detection:</span>
+                        <span class="font-semibold">Karaoke/vector filter:</span>
                         <BadgeComponent
                             classes="text-primary-content border-accent bg-secondary text-xs">
                             BETA
                         </BadgeComponent>
                     </div>
-                    Bypass the ASS/SSA karaoke filter — translate every dialogue line, including
-                    drawing-mode vector overlays and romaji karaoke syllables. Leave disabled unless
-                    the filter is mis-skipping lines you want translated.
+                    Enable the ASS/SSA karaoke filter — skips translation of OPR/EDR romaji styles
+                    and bare vector drawings, and tolerates older Aegisub files that omit the Layer
+                    field. Default off; opt in if you have karaoke-heavy anime subs.
                 </div>
-                <ToggleButton v-model="skipKaraokeDetection">
+                <ToggleButton v-model="karaokeFilterEnabled">
                     <span class="text-sm font-medium text-primary-content">
-                        {{ skipKaraokeDetection == 'true' ? 'Enabled' : 'Disabled' }}
+                        {{ karaokeFilterEnabled == 'true' ? 'Enabled' : 'Disabled' }}
                     </span>
                 </ToggleButton>
 
@@ -144,10 +144,10 @@ const stripSubtitleFormatting = computed({
     }
 })
 
-const skipKaraokeDetection = computed({
-    get: (): string => settingsStore.getSetting(SETTINGS.SKIP_KARAOKE_DETECTION) as string,
+const karaokeFilterEnabled = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.KARAOKE_FILTER_ENABLED) as string,
     set: (newValue: string): void => {
-        settingsStore.updateSetting(SETTINGS.SKIP_KARAOKE_DETECTION, newValue, true)
+        settingsStore.updateSetting(SETTINGS.KARAOKE_FILTER_ENABLED, newValue, true)
         saveNotification.value?.show()
     }
 })

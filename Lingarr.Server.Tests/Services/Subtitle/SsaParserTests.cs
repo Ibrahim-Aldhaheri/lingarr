@@ -366,11 +366,12 @@ Dialogue: 0,0:00:01.00,0:00:04.00,OP-rom-furigana,,0,0,0,,ka
     }
 
     [Fact]
-    public void ParseStream_OprStyleDialogue_SkipDetectionKeepsPlaintext()
+    public void ParseStream_OprStyleDialogue_UpstreamParserKeepsPlaintext()
     {
-        // When the skip_karaoke_detection toggle is on, the karaoke style filter
-        // must be bypassed and the syllable flows through to the translator.
-        var parser = new SsaParser(skipKaraokeDetection: true);
+        // When the karaoke_filter_enabled toggle is OFF (default), SubtitleService
+        // uses SsaParserOriginal which has no style filter — the syllable flows
+        // through to the translator untouched.
+        var parser = new SsaParserOriginal();
         var ass = @"[Script Info]
 Title: Test
 

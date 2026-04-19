@@ -5,12 +5,6 @@ namespace Lingarr.Server.Services.Subtitle;
 
 public class SubtitleFormatterService : ISubtitleFormatterService
 {
-    // Echoed context-prompt scaffold tokens — some models repeat these in their
-    // answer. Lines starting with any of these are dropped during sanitation.
-    private static readonly string[] ScaffoldLinePrefixes =
-        { "[TARGET]", "[CONTEXT]", "[/CONTEXT]" };
-
-    private static readonly Regex ScaffoldArrowLine = new(@"^>>>.*<<<$", RegexOptions.Compiled);
     // Text starting with a vector drawing prefix — pure vector paths or
     // karaoke where a trailing syllable follows the drawing ("m 0 0 ka").
     private static readonly Regex VectorPrefixPattern = new(
@@ -22,8 +16,15 @@ public class SubtitleFormatterService : ISubtitleFormatterService
         @"\\[pP][0-9].*?\\[pP][0-9]",
         RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
+    // Echoed context-prompt scaffold tokens — some models repeat these in their
+    // answer. Lines starting with any of these are dropped during sanitation.
+    private static readonly string[] ScaffoldLinePrefixes =
+        { "[TARGET]", "[CONTEXT]", "[/CONTEXT]" };
+
+    private static readonly Regex ScaffoldArrowLine = new(@"^>>>.*<<<$", RegexOptions.Compiled);
+
     /// <inheritdoc />
-    public static string RemoveMarkup(string input, bool skipKaraokeDetection = false)
+    public static string RemoveMarkup(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) {
             return string.Empty;
@@ -49,8 +50,8 @@ public class SubtitleFormatterService : ISubtitleFormatterService
 
         var result = stripped.Trim();
 
-        // Drop vector/karaoke lines unless the caller opts out.
-        if (!skipKaraokeDetection && VectorPrefixPattern.IsMatch(result)) {
+        // Drop vector/karaoke lines so the translation guard skips them.
+        if (VectorPrefixPattern.IsMatch(result)) {
             return string.Empty;
         }
 

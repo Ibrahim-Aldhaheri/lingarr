@@ -15,22 +15,6 @@ public class SsaParser : ISubtitleParser
         @"^(OP|ED)\d?[\s_-]*(R\d*|rom(?:[\s_-]?\w+)*|romaji\w*|romanji\w*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    private readonly bool _skipKaraokeDetection;
-
-    /// <summary>
-    /// Creates a new SSA/ASS parser.
-    /// </summary>
-    /// <param name="skipKaraokeDetection">
-    /// When <c>true</c>, bypass the karaoke style filter and the vector-prefix
-    /// plaintext filter so every dialogue line is treated as translatable.
-    /// Plumbed from the <c>skip_karaoke_detection</c> setting; defaults to
-    /// <c>false</c> (filter active) for callers that don't pass it.
-    /// </param>
-    public SsaParser(bool skipKaraokeDetection = false)
-    {
-        _skipKaraokeDetection = skipKaraokeDetection;
-    }
-
     private const string SCRIPT_INFO_SECTION = "[Script Info]";
     private const string V4_PLUS_STYLES_SECTION = "[V4+ Styles]";
     private const string V4_STYLES_SECTION = "[V4 Styles]";
@@ -203,9 +187,7 @@ public class SsaParser : ISubtitleParser
         }
 
         var textLines = SplitTextByWrapStyle(text, ssaFormat.WrapStyle);
-        var plaintextLines = textLines
-            .Select(line => SubtitleFormatterService.RemoveMarkup(line, _skipKaraokeDetection))
-            .ToList();
+        var plaintextLines = textLines.Select(SubtitleFormatterService.RemoveMarkup).ToList();
 
         // Create SsaDialogue info
         var ssaDialogue = new SsaDialogue
@@ -223,7 +205,7 @@ public class SsaParser : ISubtitleParser
             ssaDialogue.Name = dialogueParts[columnIndexes["Name"]].Trim();
         }
 
-        if (!_skipKaraokeDetection && KaraokeStylePattern.IsMatch(ssaDialogue.Style))
+        if (KaraokeStylePattern.IsMatch(ssaDialogue.Style))
         {
             plaintextLines = plaintextLines.Select(_ => string.Empty).ToList();
         }
