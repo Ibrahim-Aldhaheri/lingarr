@@ -325,8 +325,10 @@ Dialogue: 0:00:01.00,0:00:04.00,Default,,0,0,0,,Hello from legacy Aegisub
     // ===== Karaoke-style skip toggle =====
 
     [Fact]
-    public void ParseStream_OprStyleDialogue_DefaultParserMarksPlaintextEmpty()
+    public void ParseStream_OprStyleDialogue_DefaultParserKeepsPlaintext()
     {
+        // Beta karaoke filter is off by default, so the OPR syllable flows
+        // through to the translator exactly as on upstream.
         var ass = @"[Script Info]
 Title: Test
 
@@ -340,38 +342,13 @@ Dialogue: 0,0:00:01.00,0:00:04.00,OPR,,0,0,0,,ka
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
         var items = _parser.ParseStream(stream, Encoding.UTF8);
         Assert.Single(items);
-        Assert.Equal(string.Empty, items[0].PlaintextLines[0]);
+        Assert.Equal("ka", items[0].PlaintextLines[0]);
     }
 
     [Fact]
-    public void ParseStream_OpRomFuriganaStyle_IsRecognisedAsKaraoke()
+    public void ParseStream_OprStyleDialogue_KaraokeFilterMarksPlaintextEmpty()
     {
-        // Blood Blockade Battlefront uses "OP-rom-furigana" for its furigana overlay.
-        // The style regex must cover these compound suffixes or the text gets sent
-        // to the translator as garbled Japanese.
-        var ass = @"[Script Info]
-Title: Test
-
-[V4+ Styles]
-Style: OP-rom-furigana,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0
-
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:01.00,0:00:04.00,OP-rom-furigana,,0,0,0,,ka
-";
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
-        var items = _parser.ParseStream(stream, Encoding.UTF8);
-        Assert.Single(items);
-        Assert.Equal(string.Empty, items[0].PlaintextLines[0]);
-    }
-
-    [Fact]
-    public void ParseStream_OprStyleDialogue_UpstreamParserKeepsPlaintext()
-    {
-        // When the karaoke_filter_enabled toggle is OFF (default), SubtitleService
-        // uses SsaParserOriginal which has no style filter — the syllable flows
-        // through to the translator untouched.
-        var parser = new SsaParserOriginal();
+        var parser = new SsaParser(karaokeFilterEnabled: true);
         var ass = @"[Script Info]
 Title: Test
 
@@ -385,7 +362,30 @@ Dialogue: 0,0:00:01.00,0:00:04.00,OPR,,0,0,0,,ka
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
         var items = parser.ParseStream(stream, Encoding.UTF8);
         Assert.Single(items);
-        Assert.Equal("ka", items[0].PlaintextLines[0]);
+        Assert.Equal(string.Empty, items[0].PlaintextLines[0]);
+    }
+
+    [Fact]
+    public void ParseStream_OpRomFuriganaStyle_IsRecognisedAsKaraoke()
+    {
+        // Blood Blockade Battlefront uses "OP-rom-furigana" for its furigana overlay.
+        // The style regex must cover these compound suffixes when the karaoke
+        // filter is enabled so the text is not sent to the translator as garbled Japanese.
+        var parser = new SsaParser(karaokeFilterEnabled: true);
+        var ass = @"[Script Info]
+Title: Test
+
+[V4+ Styles]
+Style: OP-rom-furigana,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:04.00,OP-rom-furigana,,0,0,0,,ka
+";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ass));
+        var items = parser.ParseStream(stream, Encoding.UTF8);
+        Assert.Single(items);
+        Assert.Equal(string.Empty, items[0].PlaintextLines[0]);
     }
 
     // ===== Helper =====

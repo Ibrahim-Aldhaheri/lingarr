@@ -10,10 +10,29 @@ public class SsaParser : ISubtitleParser
     // Karaoke romaji style names (OPR/EDR, OP-R, OP_ROM, "OP Romaji",
     // "OP-rom-furigana", etc.) — dialogue under these styles is visual karaoke,
     // not translatable text. The optional trailing group covers "-furigana",
-    // "-BG" and other fansub-specific suffixes chained after "rom".
+    // "-BG" and other fansub-specific suffixes chained after "rom". Only
+    // consulted when the opt-in karaoke filter is enabled.
     private static readonly Regex KaraokeStylePattern = new(
         @"^(OP|ED)\d?[\s_-]*(R\d*|rom(?:[\s_-]?\w+)*|romaji\w*|romanji\w*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private readonly bool _karaokeFilterEnabled;
+
+    /// <summary>
+    /// Creates a new SSA/ASS parser.
+    /// </summary>
+    /// <param name="karaokeFilterEnabled">
+    /// When <c>true</c> (opt-in BETA), dialogue under karaoke romaji styles
+    /// (<c>OPR</c>, <c>EDR</c>, <c>OP-rom-*</c>, <c>OP Romaji</c>, etc.) is
+    /// marked with empty <see cref="SubtitleItem.PlaintextLines"/> so the
+    /// translation guard skips it. All other parser fixes (layer-omitted
+    /// fallback, drawing-block stripping, bare-vector detection) apply
+    /// regardless of this flag. Defaults to <c>false</c>.
+    /// </param>
+    public SsaParser(bool karaokeFilterEnabled = false)
+    {
+        _karaokeFilterEnabled = karaokeFilterEnabled;
+    }
 
     private const string SCRIPT_INFO_SECTION = "[Script Info]";
     private const string V4_PLUS_STYLES_SECTION = "[V4+ Styles]";
@@ -205,7 +224,7 @@ public class SsaParser : ISubtitleParser
             ssaDialogue.Name = dialogueParts[columnIndexes["Name"]].Trim();
         }
 
-        if (KaraokeStylePattern.IsMatch(ssaDialogue.Style))
+        if (_karaokeFilterEnabled && KaraokeStylePattern.IsMatch(ssaDialogue.Style))
         {
             plaintextLines = plaintextLines.Select(_ => string.Empty).ToList();
         }

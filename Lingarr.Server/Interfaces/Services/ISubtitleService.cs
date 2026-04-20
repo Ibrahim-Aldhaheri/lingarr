@@ -25,11 +25,11 @@ public interface ISubtitleService
     /// </summary>
     /// <param name="filePath">The path to the subtitle file to be read.</param>
     /// <param name="karaokeFilterEnabled">
-    /// When <c>true</c>, the SSA/ASS path uses the beta <see cref="Services.Subtitle.SsaParser"/>
-    /// which skips karaoke romaji styles, drops vector-prefix plaintext and
-    /// tolerates layer-omitted dialogue. When <c>false</c> (default) the
-    /// pristine upstream parser is used so community behaviour is unchanged.
-    /// Ignored for non-ASS formats (SRT).
+    /// When <c>true</c> (opt-in BETA), SSA/ASS dialogue under karaoke romaji
+    /// styles (OPR, EDR, OP-rom, OP Romaji, etc.) is given empty plaintext so
+    /// the translation guard skips it. All other parser fixes — layer-omitted
+    /// fallback, drawing-block stripping, bare-vector detection — apply
+    /// unconditionally. Ignored for non-ASS formats (SRT).
     /// </param>
     /// <returns>A list of SubtitleItem objects representing the parsed subtitles.</returns>
     Task<List<SubtitleItem>> ReadSubtitles(string filePath, bool karaokeFilterEnabled = false);

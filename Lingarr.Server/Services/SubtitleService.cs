@@ -93,16 +93,10 @@ public class SubtitleService : ISubtitleService
     public async Task<List<SubtitleItem>> ReadSubtitles(string filePath, bool karaokeFilterEnabled = false)
     {
         var extension = Path.GetExtension(filePath).ToLower();
-        // When the beta karaoke filter is enabled, use SsaParser (which skips
-        // karaoke romaji styles, strips vector-prefix plaintext, and tolerates
-        // layer-omitted dialogue). Otherwise fall back to the pristine upstream
-        // parser so default behaviour is unchanged for the community.
         ISubtitleParser parser = extension switch
         {
             ".srt" => new SrtParser(),
-            ".ssa" or ".ass" => karaokeFilterEnabled
-                ? new SsaParser()
-                : (ISubtitleParser)new SsaParserOriginal(),
+            ".ssa" or ".ass" => new SsaParser(karaokeFilterEnabled),
             _ => throw new NotSupportedException($"Subtitle format {extension} is not supported")
         };
 

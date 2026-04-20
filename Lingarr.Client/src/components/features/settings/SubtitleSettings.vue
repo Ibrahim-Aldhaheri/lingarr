@@ -44,15 +44,17 @@
 
                 <div class="flex flex-col space-x-2">
                     <div class="flex items-center gap-2">
-                        <span class="font-semibold">Karaoke/vector filter:</span>
+                        <span class="font-semibold">Karaoke romaji filter:</span>
                         <BadgeComponent
                             classes="text-primary-content border-accent bg-secondary text-xs">
                             BETA
                         </BadgeComponent>
                     </div>
-                    Enable the ASS/SSA karaoke filter — skips translation of OPR/EDR romaji styles
-                    and bare vector drawings, and tolerates older Aegisub files that omit the Layer
-                    field. Default off; opt in if you have karaoke-heavy anime subs.
+                    Skip translation for dialogue under karaoke romaji styles
+                    (<code>OPR</code>, <code>EDR</code>, <code>OP-rom</code>, <code>OP Romaji</code>, etc.)
+                    so the original karaoke timing survives instead of being replaced
+                    with an attempted translation. Default off; opt in if you have
+                    karaoke-heavy anime subs.
                 </div>
                 <ToggleButton v-model="karaokeFilterEnabled">
                     <span class="text-sm font-medium text-primary-content">
